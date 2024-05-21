@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  translations:
+    build: .
+    env_file:
+      - ./.env
+    ports:
+      - '${PUB_PORT:-8788}:80'

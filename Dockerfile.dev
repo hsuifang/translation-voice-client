@@ -1,0 +1,20 @@
+FROM node:18-alpine
+
+WORKDIR /app/client
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Copy only the package files
+COPY package.json pnpm-lock.yaml* ./
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy the rest of your source code
+COPY . .
+
+ENV PORT=9002
+EXPOSE 9002
+
+CMD ["pnpm", "run", "dev"]

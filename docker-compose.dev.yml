@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  clientd:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - '8789:9002'
