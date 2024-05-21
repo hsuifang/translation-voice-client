@@ -47,9 +47,12 @@ const useMediaDevices = (): UseMediaDevicesHook => {
       // Call getDevices again to refresh the list of devices
       getDevices();
     };
-
-    // Add event listener for device change
-    navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);
+    try {
+      // Add event listener for device change
+      navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);
+    } catch (error) {
+      console.log('error', error);
+    }
 
     // Cleanup function to remove event listener
     return () => {
