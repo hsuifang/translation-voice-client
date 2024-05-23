@@ -2,7 +2,7 @@ import { Flex, Text, Input, Button } from '@chakra-ui/react';
 
 function Home() {
   return (
-    <Flex minH="100vh">
+    <Flex minH="80vh">
       <Flex direction="column" justify={'center'} align={'center'} w="100%" borderRight="1px solid #ddd">
         <Text>歡迎來到牙科服務</Text>
         <Flex w="50%" mt="16px" data-testid="search-section">

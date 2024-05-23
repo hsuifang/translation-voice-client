@@ -22,6 +22,14 @@ const Recorder = ({
     getUserMediaStream({ audio: { deviceId: 'default', channelCount: 1, sampleRate: 16000 } });
   }, [getUserMediaStream]);
 
+  const toggleRecording = () => {
+    if (isRecording) {
+      handleStopRecording();
+    } else {
+      handleStartRecording();
+    }
+  };
+
   const handleStartRecording = useCallback(() => {
     // Prevent starting a new recording if already recording
     if (isRecording) return;
@@ -30,7 +38,6 @@ const Recorder = ({
     audioChunksRef.current = [];
 
     try {
-      console.log(stream);
       if (stream) {
         mediaRecorderRef.current = new RecordRTC(stream, {
           type: 'audio',
@@ -41,6 +48,7 @@ const Recorder = ({
         mediaRecorderRef.current.startRecording();
       }
     } catch (error) {
+      alert(error);
       console.error('Error accessing the microphone: ', error);
     }
   }, [isRecording, stream]);
@@ -52,7 +60,6 @@ const Recorder = ({
       mediaRecorderRef.current.stopRecording(() => {
         if (mediaRecorderRef.current) {
           const audioBlob = mediaRecorderRef.current.getBlob();
-          console.log(audioBlob);
           updateBlob(audioBlob);
         }
       });
@@ -61,13 +68,15 @@ const Recorder = ({
 
   return (
     <IconButton
-      colorScheme="teal"
       aria-label="Call Segun"
       borderRadius="50%"
+      fontSize={'3xl'}
+      minW="70px"
+      minH="70px"
       size="lg"
+      colorScheme={isRecording ? 'red' : 'teal'}
       icon={<FaMicrophone />}
-      onMouseDown={handleStartRecording}
-      onMouseUp={handleStopRecording}
+      onClick={toggleRecording}
     />
   );
 };

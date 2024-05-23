@@ -3,8 +3,8 @@ import Chat from './features/chat/Chat';
 
 function App() {
   return (
-    <Flex h="100vh" justifyContent={'center'} alignItems={'center'}>
-      <Box p="20px" h="fit-content" w="100%">
+    <Flex justifyContent={'center'} alignItems={'center'} w="100%" position="fixed" height="100vh">
+      <Box p="20px" h="fit-content" w="100%" position="fixed" height={'100%'} top={0}>
         <Chat />
       </Box>
     </Flex>

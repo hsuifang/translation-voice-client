@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Box, HStack, Input, Grid, Text, Flex, Avatar, useToast, Select } from '@chakra-ui/react';
+import { Box, HStack, Grid, Text, Flex, Avatar, useToast, Select, useMediaQuery } from '@chakra-ui/react';
 import Recorder from './components/Recorder';
 import VoiceAnimation from './components/VoiceAnimation';
 import { clamp } from 'framer-motion';
@@ -9,6 +9,8 @@ import { useSpeachTranslate } from './services/mutations';
 interface ISource {
   url: string;
   autoPlay: boolean;
+  sourceText?: string;
+  targetText?: string;
 }
 interface AudioContent {
   time: string;
@@ -16,37 +18,35 @@ interface AudioContent {
 }
 
 const Chat = () => {
-  const [text, setText] = useState('');
-  const [message, setMessage] = useState<string[]>([]);
+  const [isLessThan500] = useMediaQuery('(max-width: 500px)');
+
   const [audioUrl, setAudioUrl] = useState<AudioContent[]>([]);
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
+  // lang
+  const [sourceLang, setSourceLang] = useState('zh');
+  const [targetLang, setTargetLang] = useState('en');
+
   // upload audio
   const { mutateAsync: speechTranslateReq } = useSpeachTranslate();
 
-  const handleClick = () => {
-    setMessage([...message, text]);
-    setText('');
-  };
-
-  //
+  // toast
   const toast = useToast();
 
   const handleUpdateBlob = (blob: Blob) => {
     // 確認長度
     const url = URL.createObjectURL(blob);
     const mediaElement = new Audio(url);
+
     mediaElement.addEventListener('loadedmetadata', () => {
-      console.log('----', mediaElement.duration);
-      if (mediaElement.duration < 2 || mediaElement.duration > 10) {
+      if (mediaElement.duration < 1 || mediaElement.duration > 10) {
         toast({
           status: 'error',
-          description: '錄音長度須介於 2 秒 和 10 秒 ',
+          description: '錄音長度須介於 1 秒 ~ 10 秒 ',
           position: 'top',
         });
-        return;
       } else {
         setAudioUrl([
           ...audioUrl,
@@ -60,24 +60,46 @@ const Chat = () => {
             ],
           },
         ]);
+
         handleUpload(blob);
       }
     });
     mediaElement.load();
   };
 
+  function base64ToBlob(base64: string, mimetype: string) {
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mimetype });
+  }
+
   const handleUpload = async (blob: Blob) => {
     setIsUploading(true);
     const audioFile = new File([blob], `record-${dayjs().format('YYYYMMDDHHmmss')}.wav`, { type: 'audio/wav' });
     try {
-      const result = await speechTranslateReq(audioFile);
-      const audioURL = URL.createObjectURL(result);
+      const { source_text, target_text, file } = await speechTranslateReq({
+        file: audioFile,
+        source_lang: sourceLang,
+        target_lang: targetLang,
+      });
 
+      // Convert base64 string to Blob
+      const audioBlob = base64ToBlob(file, 'audio/wav');
+      // Create a URL for the Blob
+      const audioURL = URL.createObjectURL(audioBlob);
+      // const audioURL = URL.createObjectURL(result);
       setAudioUrl((prev) => {
         if (prev.length === 0) {
           return prev;
         }
-        const newSource = [...prev[prev.length - 1].source, { url: audioURL, autoPlay: true }];
+        const newSource = [
+          ...prev[prev.length - 1].source,
+          { url: audioURL, autoPlay: true, sourceText: source_text, targetText: target_text },
+        ];
         const newLast = { ...prev[prev.length - 1], source: newSource };
         const newItems = [...prev.slice(0, -1), newLast];
         return newItems;
@@ -97,26 +119,23 @@ const Chat = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [message, audioUrl]);
-
-  // lang
-  const [lang, setLang] = useState('zh');
+  }, [audioUrl]);
 
   return (
     <Grid
       templateRows="5% 80% 15%"
       maxW={clamp(450, 500, 500)}
       w="100%"
+      h="100%"
       mx="auto"
-      minH="700px"
-      maxH="100vh"
       borderRadius="8px"
       padding="20px"
       bg="gray.100"
     >
-      {/* 對話筐 */}
       <HStack>
-        <Text>中文轉 {lang}</Text>
+        <Text>
+          {sourceLang}轉 {targetLang}
+        </Text>
       </HStack>
       <Box
         bg="gray.50"
@@ -127,9 +146,9 @@ const Chat = () => {
         padding="10px"
       >
         {audioUrl.map((content, idx) => (
-          <Flex mb="10px" key={content.time + idx}>
+          <Flex mb="10px" wrap={'wrap'} key={content.time + idx}>
             <Avatar
-              size="md"
+              size={isLessThan500 ? 'xs' : 'md'}
               name="longphant"
               mr="10px"
               src="https://obs.line-scdn.net/0hl2Vf6yhUMx1rHyG96v9MSjlCOH9YfS0WSSsnegtgBEYHfysjVikZLUxPCyxHfzwgHBgaOghgH0ZHThIrCywZegd3C3tCfS8gHCwJCwVPG38AVCgRXwUM/f256x256"
@@ -138,10 +157,12 @@ const Chat = () => {
               <Box bg="white" padding="10px" w="fit-content" borderRadius="8px" mb="5px">
                 {content.source.map((src, idx) => (
                   <Box mb="10px" key={src.url + idx}>
+                    {src.sourceText && <Text mb={2}>{src.sourceText}</Text>}
                     <audio controls autoPlay={src.autoPlay}>
                       <source src={src.url} type="audio/wav" />
                       Your browser does not support the audio element.
                     </audio>
+                    {src.targetText && <Text>{src.targetText}</Text>}
                   </Box>
                 ))}
               </Box>
@@ -163,26 +184,23 @@ const Chat = () => {
         )}
       </Box>
       <HStack>
-        <Select value={lang} onChange={(e) => setLang(e.target.value)}>
+        <Select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)}>
           <option value="zh">中文</option>
           <option value="en">英文</option>
           <option value="ko">韓語</option>
           <option value="ja">日文</option>
+          <option value="pl">波文</option>
         </Select>
-        <Input
-          size="lg"
-          placeholder="輸入文字"
-          value={text}
-          bg="white"
-          disabled
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleClick();
-            }
-          }}
-        />
-        <Recorder updateBlob={handleUpdateBlob} setIsRecording={setIsRecording} isRecording={isRecording} />
+        <Box mx="2">
+          <Recorder updateBlob={handleUpdateBlob} setIsRecording={setIsRecording} isRecording={isRecording} />
+        </Box>
+        <Select value={targetLang} onChange={(e) => setTargetLang(e.target.value)}>
+          <option value="zh">中文</option>
+          <option value="en">英文</option>
+          <option value="ko">韓語</option>
+          <option value="ja">日文</option>
+          <option value="pl">波文</option>
+        </Select>
       </HStack>
     </Grid>
   );
