@@ -69,8 +69,8 @@ const Chat = () => {
     setRecordContent((prev) =>
       prev.map((content) =>
         content.kind === kind
-          ? { ...content, selected: isRecording, url: '' }
-          : { ...content, selected: false, url: '' },
+          ? { ...content, text: 'recording...', selected: isRecording, url: '' }
+          : { ...content, text: 'recording...', selected: false, url: '' },
       ),
     );
   };
@@ -221,7 +221,7 @@ const Chat = () => {
             title={content.lang}
           >
             <Recorder
-              disabledBtn={isRecording && !content.selected}
+              disabledBtn={(isRecording && !content.selected) || isUploading}
               updateBlob={(blob) => handleUpdateBlob(blob, content.kind)}
               setIsRecording={(isRecording) => handleSetIsRecording(isRecording, content.kind)}
               isRecording={isRecording}

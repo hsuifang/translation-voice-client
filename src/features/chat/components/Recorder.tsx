@@ -77,7 +77,7 @@ const Recorder = ({ recordLimitTime = 10, isRecording, updateBlob, setIsRecordin
     if (isRecording) {
       interval = setInterval(() => {
         setRecordSeconds((seconds) => {
-          if (seconds > recordLimitTime + 1) {
+          if (seconds > recordLimitTime) {
             clearInterval(interval!);
             return recordLimitTime;
           }
@@ -93,7 +93,7 @@ const Recorder = ({ recordLimitTime = 10, isRecording, updateBlob, setIsRecordin
   }, [isRecording, setRecordSeconds]);
 
   useEffect(() => {
-    if (isRecording && recordSeconds === recordLimitTime + 1) {
+    if (isRecording && recordSeconds === recordLimitTime) {
       toggleRecording();
     }
   }, [isRecording, recordSeconds, toggleRecording]);
