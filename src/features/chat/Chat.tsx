@@ -188,12 +188,12 @@ const Chat = () => {
             setValue={(val) => setViewMode(val as 'pm' | 'normal')}
             options={[
               {
-                key: 'pm',
-                value: '禮貌模式',
+                key: '禮貌模式',
+                value: 'pm',
               },
               {
-                key: 'normal',
-                value: '普通模式',
+                key: '一般模式',
+                value: 'normal',
               },
             ]}
           />

@@ -28,7 +28,7 @@ const SelectOptions = ({ value, setValue, disabled, options, size, style }: ISel
     >
       {options.map((option) => (
         <option key={option.key} value={option.value}>
-          {option.value}
+          {option.key}
         </option>
       ))}
     </Select>
