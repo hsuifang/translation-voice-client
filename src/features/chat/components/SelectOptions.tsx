@@ -5,7 +5,7 @@ interface Options {
   key: string;
   value: string;
 }
-interface ISelectLangProps {
+interface ISelectProps {
   value: string;
   options: Options[];
   setValue: (value: string) => void;
@@ -14,7 +14,7 @@ interface ISelectLangProps {
   style?: SystemCSSProperties;
 }
 
-const SelectOptions = ({ value, setValue, disabled, options, size, style }: ISelectLangProps) => {
+const SelectOptions = ({ value, setValue, disabled, options, size, style }: ISelectProps) => {
   return (
     <Select
       width={style?.width || '100%'}

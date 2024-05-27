@@ -19,7 +19,7 @@ export const useSpeechTranslate = () => {
         file,
         source_lang,
         target_lang,
-        name: model as 'evonne' | 'laura' | ' ',
+        name: model as 'evonne' | 'laura' | 'auto',
       });
       return result;
     },

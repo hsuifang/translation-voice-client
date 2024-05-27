@@ -2,19 +2,21 @@ import { useState } from 'react';
 import { Grid, Flex, useToast, Text } from '@chakra-ui/react';
 // component
 import Recorder from './components/Recorder';
-import SelectLang from './components/SelectLang';
 import SelectOptions from './components/SelectOptions';
 import ChatItem from './components/ChatItem';
 
 import dayjs from 'dayjs';
 import { useSpeechTranslate } from './services/mutations';
+import { useSystemSupportModels, useSystemSupportLangs } from './services/queries';
 
 import base64ToBlob from './utils/base64ToBlob';
 
-const LANGS = ['zh', 'en', 'ja', 'ko', 'pl'] as const;
+import useChatStore from './store/useChatStore';
+
+const LANGS = ['en', 'zh', 'ja', 'ko', 'pl'] as const;
 type Lang = (typeof LANGS)[number];
 
-const KINDS = ['self', 'opposite'] as const;
+const KINDS = ['opposite', 'self'] as const;
 type Kind = (typeof KINDS)[number];
 type RecordContentState = {
   lang: Lang;
@@ -26,24 +28,35 @@ type RecordContentState = {
 }[];
 
 // 對話筐類型
-const contentInit = () =>
-  KINDS.map((kind, idx) => ({
-    kind,
-    lang: LANGS[idx] as Lang,
-    text: '',
-    url: '',
-    autoPlay: false,
-    selected: false,
-  }));
+
+const contentInitItem = (lang: Lang, kind: Kind) => ({
+  kind,
+  lang,
+  text: '',
+  url: '',
+  autoPlay: false,
+  selected: false,
+});
 
 const Chat = () => {
   // style
   const toast = useToast();
 
-  const [modelLang, setModelLang] = useState<'evonne' | 'laura'>('evonne');
-  const [viewMode, setViewMode] = useState<'pm' | 'normal'>('normal');
+  // store
+  const {
+    modelLang: storeModelLang,
+    chatLang: storeChatLang,
+    viewMode: storeViewMode,
+    availableModelLangs,
+    availableVoiceLangs,
+    changeViewMode,
+    changeChatLang,
+    changeModelLang,
+  } = useChatStore();
 
-  const [recordContent, setRecordContent] = useState<RecordContentState>(contentInit());
+  const contentInit = KINDS.map((kind) => contentInitItem(storeChatLang[kind] as Lang, kind));
+
+  const [recordContent, setRecordContent] = useState<RecordContentState>(contentInit);
   const [isRecording, setIsRecording] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -118,7 +131,7 @@ const Chat = () => {
         file: audioFile,
         source_lang,
         target_lang,
-        model: modelLang,
+        model: storeModelLang,
       });
 
       // Convert base64 string to Blob
@@ -147,6 +160,9 @@ const Chat = () => {
     }
   };
 
+  useSystemSupportModels();
+  useSystemSupportLangs();
+
   return (
     <Grid
       templateRows="5% 45% 45%"
@@ -166,26 +182,17 @@ const Chat = () => {
           <SelectOptions
             style={{ width: '100px' }}
             size="xs"
-            value={modelLang}
+            value={storeModelLang}
             disabled={isRecording}
-            setValue={(val) => setModelLang(val as 'evonne' | 'laura')}
-            options={[
-              {
-                key: 'evonne',
-                value: 'evonne',
-              },
-              {
-                key: 'laura',
-                value: 'laura',
-              },
-            ]}
+            setValue={(val) => changeModelLang(val as 'evonne' | 'laura' | 'auto')}
+            options={availableModelLangs.map((lang) => ({ key: lang, value: lang }))}
           />
           <SelectOptions
             style={{ width: '100px' }}
             size="xs"
-            value={viewMode}
+            value={storeViewMode}
             disabled={isRecording}
-            setValue={(val) => setViewMode(val as 'pm' | 'normal')}
+            setValue={(val) => changeViewMode(val as 'pm' | 'normal')}
             options={[
               {
                 key: '禮貌模式',
@@ -204,7 +211,7 @@ const Chat = () => {
         <Grid
           key={content.kind}
           templateRows="90% 10%"
-          transform={viewMode === 'pm' && idx === 0 ? 'rotate(180deg)' : ''}
+          transform={storeViewMode === 'pm' && idx === 0 ? 'rotate(180deg)' : ''}
         >
           <ChatItem
             isLoading={isUploading}
@@ -221,10 +228,15 @@ const Chat = () => {
               recordLimitTime={10}
             />
           </ChatItem>
-          <SelectLang
-            lang={content.lang}
-            setLang={(lang) => handleSelectOptions({ key: 'lang', value: lang, kind: content.kind })}
+
+          <SelectOptions
+            value={content.lang}
             disabled={isRecording}
+            setValue={(val) => {
+              handleSelectOptions({ kind: content.kind, key: 'lang', value: val });
+              changeChatLang(content.kind, val as Lang);
+            }}
+            options={availableVoiceLangs.map((lang) => ({ key: lang, value: lang }))}
           />
         </Grid>
       ))}
