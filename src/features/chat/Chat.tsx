@@ -50,7 +50,7 @@ const Chat = () => {
     <Grid
       templateRows="5% 45% 45%"
       rowGap="16px"
-      w="clamp(400px, 100%, 500px)"
+      w="clamp(100%, 100%, 500px)"
       h="100%"
       mx="auto"
       borderRadius="8px"
