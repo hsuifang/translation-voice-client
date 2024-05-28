@@ -3,6 +3,7 @@ import { render, screen, userEvent } from '@/lib/test-utils';
 import { vi } from 'vitest';
 import Recorder from './Recorder';
 import RecordRTC from 'recordrtc';
+import styles from './animation.module.css';
 
 // test recorder component
 describe('Recorder', () => {
@@ -46,16 +47,32 @@ describe('Recorder', () => {
   });
 
   it('should render exected through props, isRecording is true', () => {
-    render(<Recorder isRecording={true} updateBlob={vi.fn()} setIsRecording={vi.fn()} disabledBtn={false} />);
+    render(
+      <Recorder
+        recordLimitTime={10}
+        isRecording={true}
+        updateBlob={vi.fn()}
+        setIsRecording={vi.fn()}
+        disabledBtn={false}
+      />,
+    );
     const button = screen.getByRole('button');
     expect(button).toBeEnabled();
-    expect(button).toHaveClass('shine-animation');
+    expect(button).toHaveClass(styles.shineAnimation);
   });
   it('should render exected through props, disabledBtn is true', () => {
-    render(<Recorder isRecording={true} updateBlob={vi.fn()} setIsRecording={vi.fn()} disabledBtn={true} />);
+    render(
+      <Recorder
+        recordLimitTime={10}
+        isRecording={true}
+        updateBlob={vi.fn()}
+        setIsRecording={vi.fn()}
+        disabledBtn={true}
+      />,
+    );
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();
-    expect(button).not.toHaveClass('shine-animation');
+    expect(button).not.toHaveClass('shineAnimation');
   });
 
   it('if isRecording is true,  click recorder button, expect updateBlob is triggered ', async () => {
@@ -63,7 +80,13 @@ describe('Recorder', () => {
     const setIsRecordingFn = vi.fn();
 
     const { rerender } = render(
-      <Recorder isRecording={false} updateBlob={updateBlobFn} setIsRecording={setIsRecordingFn} disabledBtn={false} />,
+      <Recorder
+        recordLimitTime={10}
+        isRecording={false}
+        updateBlob={updateBlobFn}
+        setIsRecording={setIsRecordingFn}
+        disabledBtn={false}
+      />,
     );
 
     // mock record 1 seconds
@@ -71,7 +94,13 @@ describe('Recorder', () => {
     await userEvent.click(button);
 
     rerender(
-      <Recorder isRecording={true} updateBlob={updateBlobFn} setIsRecording={setIsRecordingFn} disabledBtn={false} />,
+      <Recorder
+        recordLimitTime={10}
+        isRecording={true}
+        updateBlob={updateBlobFn}
+        setIsRecording={setIsRecordingFn}
+        disabledBtn={false}
+      />,
     );
     await userEvent.click(button);
 
@@ -82,7 +111,13 @@ describe('Recorder', () => {
     const updateBlobFn = vi.fn();
     const setIsRecordingFn = vi.fn();
     render(
-      <Recorder isRecording={false} updateBlob={updateBlobFn} setIsRecording={setIsRecordingFn} disabledBtn={false} />,
+      <Recorder
+        recordLimitTime={10}
+        isRecording={false}
+        updateBlob={updateBlobFn}
+        setIsRecording={setIsRecordingFn}
+        disabledBtn={false}
+      />,
     );
     const button = screen.getByRole('button');
     await userEvent.click(button);

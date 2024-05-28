@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 import { persist, PersistOptions } from 'zustand/middleware';
+import langMapping from '../utils/langMapping.json';
+
+const VoiceLangMapping: Record<string, string> = langMapping;
 
 // Define the shape of the chatLang object
 interface ChatLang {
@@ -8,11 +11,12 @@ interface ChatLang {
 }
 
 // Define the shape of the store's state
+type Language = { key: string; value: string };
 interface IChatStoreState {
   modelLang: string;
   chatLang: ChatLang;
   availableModelLangs: string[];
-  availableVoiceLangs: string[];
+  availableVoiceLangs: Language[];
   viewMode: 'normal' | 'pm';
   changeModelLang: (model: string) => void;
   changeViewMode: (mode: 'normal' | 'pm') => void;
@@ -42,8 +46,14 @@ const useChatStore = create<IChatStoreState>(
       changeViewMode: (mode: 'normal' | 'pm') => set({ viewMode: mode }),
       changeChatLang: (role: 'self' | 'opposite', lang: string) =>
         set({ chatLang: { ...get().chatLang, [role]: lang } }),
-      setAvailableModelLangs: (langs: string[]) => set({ availableModelLangs: langs }),
-      setAvailableVoiceLangs: (langs: string[]) => set({ availableVoiceLangs: langs }),
+      setAvailableModelLangs: (models: string[]) => set({ availableModelLangs: models }),
+      setAvailableVoiceLangs: (langs: string[]) =>
+        set({
+          availableVoiceLangs: langs.map((lang: string) => ({
+            key: VoiceLangMapping[lang] || lang,
+            value: lang,
+          })),
+        }),
       reset: () => set({ modelLang: 'evonne', viewMode: 'normal' }),
     }),
     {

@@ -1,43 +1,42 @@
-import { Box, Grid, Text, Tag, TagLabel, Flex } from '@chakra-ui/react';
+import { Box, Grid, Text, Flex } from '@chakra-ui/react';
 import VoiceAnimation from './VoiceAnimation';
+import SelectOptions from './SelectOptions';
+import useChatStore from '../store/useChatStore';
 
 interface IChatItemProps {
   isLoading: boolean;
+  language: string;
+  setLanguage: (lang: string) => void;
   text: string;
   url: string;
-  title: string;
   autoPlay: boolean;
   children?: React.ReactNode;
 }
 
-const ChatItem = ({
-  isLoading,
-  text = '請錄製語音訊息...',
-  url,
-  title,
-  autoPlay = false,
-  children,
-}: IChatItemProps) => {
+const ChatItem = ({ isLoading, language, setLanguage, text, url, autoPlay = false, children }: IChatItemProps) => {
+  const { availableVoiceLangs } = useChatStore();
   return (
     <Box bg="gray.50" position="relative" borderRadius="8px" padding="10px">
-      <Tag
-        zIndex="2"
-        size="sm"
-        border="yellow"
-        variant="solid"
-        colorScheme="green"
-        position="absolute"
-        right="5px"
-        top="5px"
-      >
-        <TagLabel fontWeight="bold">{title}</TagLabel>
-      </Tag>
+      <Flex justifyContent="end" position="absolute" top="5px" right="5px" zIndex="1">
+        <Box width="clamp(50px, 100%, 100px)">
+          <SelectOptions
+            variant="fill"
+            size="xs"
+            value={language}
+            disabled={isLoading}
+            setValue={setLanguage}
+            style={{ bgColor: 'gray.100', bg: 'green.400', color: 'white' }}
+            options={availableVoiceLangs}
+          />
+        </Box>
+      </Flex>
+      {/* </Box> */}
       <Grid position="relative" templateRows="1fr auto" w="100%" borderRadius="8px" height="100%">
         {isLoading ? (
           <VoiceAnimation />
         ) : (
-          <Text pt="14px" px="10px" overflowY="scroll" scrollBehavior="smooth" fontFamily="monospace" fontSize="16px">
-            {text}
+          <Text pt="30px" px="10px" overflowY="scroll" scrollBehavior="smooth" fontFamily="monospace" fontSize="16px">
+            {text || '請錄製語音訊息...'}
           </Text>
         )}
 

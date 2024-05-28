@@ -1,4 +1,4 @@
-import { Select, SystemCSSProperties } from '@chakra-ui/react';
+import { Select, SystemStyleObject } from '@chakra-ui/react';
 import { ChangeEvent } from 'react';
 
 interface Options {
@@ -6,25 +6,27 @@ interface Options {
   value: string;
 }
 interface ISelectProps {
+  variant?: string;
   value: string;
   options: Options[];
   setValue: (value: string) => void;
   disabled: boolean;
   size?: string;
-  style?: SystemCSSProperties;
+  style?: SystemStyleObject;
 }
 
-const SelectOptions = ({ value, setValue, disabled, options, size, style }: ISelectProps) => {
+const SelectOptions = ({ variant, value, setValue, disabled, options, size, style }: ISelectProps) => {
   return (
     <Select
-      width={style?.width || '100%'}
-      bgColor={style?.bgColor || 'gray.100'}
+      variant={variant}
       isDisabled={disabled}
       borderRadius="8px"
       bg="gray.100"
       value={value}
       size={size}
+      textAlign="center"
       onChange={(e: ChangeEvent<HTMLSelectElement>) => setValue(e.target.value)}
+      sx={style}
     >
       {options.map((option) => (
         <option key={option.key} value={option.value}>
