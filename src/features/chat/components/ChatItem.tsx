@@ -1,6 +1,6 @@
 import { Box, Grid, IconButton, Flex, Textarea } from '@chakra-ui/react';
 import styled from '@emotion/styled';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import VoiceAnimation from './VoiceAnimation';
 import SelectOptions from './SelectOptions';
 import useChatStore from '../store/useChatStore';
@@ -18,7 +18,7 @@ interface IChatItemProps {
 }
 
 const StyledTypingText = styled(Textarea)`
-  margin-top: 12px;
+  margin-top: 14px;
   overflow-y: scroll;
   scroll-behavior: smooth;
   font-family: monospace;
@@ -56,6 +56,13 @@ const ChatItem = ({
     setIsTyping(true);
   };
 
+  useEffect(() => {
+    if (isProcess) {
+      setIsTyping(false);
+      setTypingText('');
+    }
+  }, [isProcess]);
+
   return (
     <Box bg="gray.50" position="relative" borderRadius="8px" padding="10px">
       <Flex justifyContent="end" position="absolute" top="5px" right="5px" zIndex="1">
@@ -80,10 +87,10 @@ const ChatItem = ({
             _focusVisible={{ border: 'none' }}
             data-testid="chat-text"
             readOnly={isReadOnly}
-            value={isTyping ? typingText : text}
+            value={isTyping && !isProcess ? typingText : text}
             maxLength={50}
             onClick={handleClickTextBox}
-            placeholder="請錄製語音訊息..."
+            placeholder="請錄製/輸入語音訊息..."
             onChange={(e) => {
               handleIsTyping(e.target.value);
             }}

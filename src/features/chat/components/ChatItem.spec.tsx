@@ -6,20 +6,21 @@ import styles from './animation.module.css';
 
 describe('ChatItem', () => {
   let handleUpdateText = vi.fn();
+  const wrapper = (isProcess = false) => (
+    <ChatItem
+      text="test"
+      handleUpdateText={handleUpdateText}
+      language="zh"
+      isProcess={isProcess}
+      autoPlay={false}
+      url={''}
+      setLanguage={() => {}}
+    >
+      <div data-testid="recorder-entry" />
+    </ChatItem>
+  );
   function renderWrap() {
-    const { rerender } = render(
-      <ChatItem
-        text="test"
-        handleUpdateText={handleUpdateText}
-        language="zh"
-        isProcess={false}
-        autoPlay={false}
-        url={''}
-        setLanguage={() => {}}
-      >
-        <div data-testid="recorder-entry" />
-      </ChatItem>,
-    );
+    const { rerender } = render(wrapper());
     const textBox = screen.getByTestId('chat-text');
     const recorder = screen.queryByTestId('recorder-entry');
     const sendTextBtn = screen.queryByTestId('sendText-entry');
@@ -65,5 +66,18 @@ describe('ChatItem', () => {
       expect(handleUpdateText).toHaveBeenCalledWith(`test${typingText}`);
       expect(screen.getByText(`test`)).toBeInTheDocument();
     }
+  });
+
+  test('isProcess is true, clear typing text', async () => {
+    const { textBox, rerender } = renderWrap();
+    let typingText = 'WORD';
+    await userEvent.click(textBox);
+    await userEvent.type(textBox, typingText);
+
+    expect(screen.getByText(`test${typingText}`)).toBeInTheDocument();
+
+    rerender(wrapper(true));
+    rerender(wrapper(false));
+    expect(screen.getByText(`test`)).toBeInTheDocument();
   });
 });
