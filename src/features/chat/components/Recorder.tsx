@@ -64,7 +64,6 @@ const Recorder = ({ recordLimitTime = 10, isRecording, updateBlob, setIsRecordin
   }, [isRecording, updateBlob, setIsRecording, mediaRecorderRef]);
 
   const toggleRecording = () => {
-    setRecordSeconds(0);
     if (isRecording) {
       handleStopRecording();
     } else {
@@ -91,6 +90,10 @@ const Recorder = ({ recordLimitTime = 10, isRecording, updateBlob, setIsRecordin
       if (interval) clearInterval(interval);
     };
   }, [isRecording, setRecordSeconds]);
+
+  useEffect(() => {
+    setRecordSeconds(0);
+  }, [isRecording]);
 
   useEffect(() => {
     if (isRecording && recordSeconds === recordLimitTime) {
