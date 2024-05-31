@@ -55,6 +55,29 @@ export const speechTranslateCustomModel = async ({
   return result.data;
 };
 
+export const textTranslate = async ({
+  source_text,
+  source_lang,
+  target_lang,
+  name = 'auto',
+}: {
+  source_text: string;
+  source_lang: string;
+  target_lang: string;
+  name: string;
+}) => {
+  const result = await req.post(
+    '/v1/end2end/text-translate-custom',
+    { source_text, source_lang, target_lang, name },
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    },
+  );
+  return result.data;
+};
+
 /**
  * Retrieves the list of supported languages from the system.
  * @return {Promise<string[]>} A promise that resolves to an array of strings representing the supported languages.

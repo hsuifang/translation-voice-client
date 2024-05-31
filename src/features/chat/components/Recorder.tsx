@@ -102,7 +102,7 @@ const Recorder = ({ recordLimitTime = 10, isRecording, updateBlob, setIsRecordin
   }, [isRecording, recordSeconds, toggleRecording]);
 
   return (
-    <Flex justifyContent="center" direction="column">
+    <Flex justifyContent="center" direction="column" data-testid="recorder-entry">
       <Box textAlign="center">
         {isRecording && !disabledBtn && (
           <Text as="samp" fontSize="12px" color="#999">

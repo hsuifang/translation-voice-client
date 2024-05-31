@@ -1,5 +1,6 @@
 import { Box, SimpleGrid } from '@chakra-ui/react';
-import './animation.module.css';
+// @ts-ignore
+import styles from './animation.module.css';
 
 const VoiceAnimation = () => {
   return (

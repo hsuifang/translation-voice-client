@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import dayjs from 'dayjs';
 
-import { useSpeechTranslate } from '../services/mutations';
+import { useSpeechTranslate, useTextTranslate } from '../services/mutations';
 import base64ToBlob from '../utils/base64ToBlob';
 
 // 畫面視窗類型
@@ -34,24 +34,24 @@ export const useChat = ({ chatLang, modelLang }: { chatLang: Record<Kind, string
   const contentInit = KINDS.map((kind) => contentInitItem(chatLang[kind], kind));
 
   const [recordContent, setRecordContent] = useState<RecordContentState>(contentInit);
-  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
   const handleSelectLangOrModel = ({ kind, key, value }: { kind: Kind; key: 'lang' | 'model'; value: string }) => {
     setRecordContent((prev) => prev.map((content) => (content.kind === kind ? { ...content, [key]: value } : content)));
   };
 
-  const handleSetIsRecording = (isRecording: boolean, kind: Kind) => {
-    setIsRecording(isRecording);
+  const handleSetIsProcessing = (isProcessing: boolean, kind: Kind) => {
+    setIsProcessing(isProcessing);
     setRecordContent((prev) =>
       prev.map((content) =>
         content.kind === kind
-          ? { ...content, text: 'recording...', selected: isRecording, url: '' }
-          : { ...content, text: 'recording...', selected: false, url: '' },
+          ? { ...content, text: isProcessing ? 'recording...' : '', selected: isProcessing, url: '' }
+          : { ...content, text: isProcessing ? 'recording...' : '', selected: false, url: '' },
       ),
     );
   };
-  // upload audio
+  // upload audio or text
   const { mutateAsync: speechTranslateReq } = useSpeechTranslate();
 
   /**
@@ -79,25 +79,32 @@ export const useChat = ({ chatLang, modelLang }: { chatLang: Record<Kind, string
     mediaElement.load();
   };
 
+  const getSourceLang = (target?: string) => {
+    let source_lang: string | null = null,
+      target_lang: string | null = null;
+    let source_area: Kind | null = null,
+      target_area: Kind | null = null;
+
+    recordContent.forEach((content) => {
+      if (content.kind === target || content.selected) {
+        source_lang = source_lang ?? content.lang;
+        source_area = source_area ?? content.kind;
+      } else {
+        target_lang = target_lang ?? content.lang;
+        target_area = target_area ?? content.kind;
+      }
+    });
+
+    return { source_lang, target_lang, source_area, target_area };
+  };
+
+  // TODO: 整合 handleUpload 和 handleUpdateTypingText
+
   const handleUpload = async (blob: Blob) => {
     setIsUploading(true);
     const audioFile = new File([blob], `record-${dayjs().format('YYYYMMDDHHmmss')}.wav`, { type: 'audio/wav' });
     try {
-      let source_lang: string | null = null,
-        target_lang: string | null = null;
-      let source_area: Kind | null = null,
-        target_area: Kind | null = null;
-
-      recordContent.forEach((content) => {
-        if (content.selected) {
-          source_lang = source_lang ?? content.lang;
-          source_area = source_area ?? content.kind;
-        } else {
-          target_lang = target_lang ?? content.lang;
-          target_area = target_area ?? content.kind;
-        }
-      });
-
+      const { source_lang, target_lang, source_area, target_area } = getSourceLang();
       if (!source_lang || !target_lang) return;
 
       const { source_text, target_text, file } = await speechTranslateReq({
@@ -129,13 +136,51 @@ export const useChat = ({ chatLang, modelLang }: { chatLang: Record<Kind, string
     }
   };
 
+  const { mutateAsync: textTranslateReq } = useTextTranslate();
+
+  const handleUpdateTypingText = async (text: string, kind: Kind) => {
+    setIsUploading(true);
+
+    try {
+      const { source_lang, target_lang, source_area, target_area } = getSourceLang(kind);
+      if (!source_lang || !target_lang) return;
+
+      const { source_text, target_text, file } = await textTranslateReq({
+        source_text: text,
+        source_lang,
+        target_lang,
+        model: modelLang,
+      });
+
+      // Convert base64 string to Blob
+      const audioBlob = base64ToBlob(file, 'audio/wav');
+      const audioURL = URL.createObjectURL(audioBlob);
+
+      setRecordContent((prev) =>
+        prev.map((content) => {
+          if (content.kind === source_area) {
+            return { ...content, text: source_text };
+          } else if (content.kind === target_area) {
+            return { ...content, text: target_text, autoPlay: true, url: audioURL };
+          } else {
+            return content;
+          }
+        }),
+      );
+    } catch (error) {
+      setErrorMsg('上傳發生錯誤');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return {
     recordContent,
-    isRecording,
+    isProcessing,
     isUploading,
-
+    handleUpdateTypingText,
     handleSelectLangOrModel,
-    handleSetIsRecording,
+    handleSetIsProcessing,
     handleUpdateBlob,
     errorMsg,
     setErrorMsg,

@@ -24,11 +24,12 @@ const Chat = () => {
 
   const {
     recordContent,
-    isRecording,
+    isProcessing,
     isUploading,
     handleSelectLangOrModel,
-    handleSetIsRecording,
+    handleSetIsProcessing,
     handleUpdateBlob,
+    handleUpdateTypingText,
     errorMsg,
     setErrorMsg,
   } = useChat({
@@ -66,7 +67,7 @@ const Chat = () => {
             style={{ width: '100px' }}
             size="xs"
             value={storeModelLang}
-            disabled={isRecording}
+            disabled={isProcessing}
             setValue={(val) => changeModelLang(val)}
             options={availableModelLangs.map((lang) => ({ key: lang, value: lang }))}
           />
@@ -74,7 +75,7 @@ const Chat = () => {
             style={{ width: '100px' }}
             size="xs"
             value={storeViewMode}
-            disabled={isRecording}
+            disabled={isProcessing}
             setValue={(val) => changeViewMode(val as 'pm' | 'normal')}
             options={[
               {
@@ -97,7 +98,7 @@ const Chat = () => {
           transform={storeViewMode === 'pm' && idx === 0 ? 'rotate(180deg)' : ''}
         >
           <ChatItem
-            isLoading={isUploading}
+            isProcess={isUploading}
             text={content.text}
             autoPlay={content.autoPlay}
             url={content.url}
@@ -106,12 +107,13 @@ const Chat = () => {
               handleSelectLangOrModel({ kind: content.kind, key: 'lang', value: val });
               changeChatLang(content.kind, val);
             }}
+            handleUpdateText={(str) => handleUpdateTypingText(str, content.kind)}
           >
             <Recorder
-              disabledBtn={(isRecording && !content.selected) || isUploading}
+              disabledBtn={(isProcessing && !content.selected) || isUploading}
               updateBlob={(blob) => handleUpdateBlob(blob, content.kind)}
-              setIsRecording={(isRecording) => handleSetIsRecording(isRecording, content.kind)}
-              isRecording={isRecording}
+              setIsRecording={(isRecording) => handleSetIsProcessing(isRecording, content.kind)}
+              isRecording={isProcessing}
               recordLimitTime={10}
             />
           </ChatItem>
