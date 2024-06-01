@@ -37,12 +37,9 @@ describe('ChatItem', () => {
     cleanup();
   });
 
-  test('change textbox to typing mode, after clicking chatItem Textbox', async () => {
+  test('render expected chatItem', async () => {
     const { textBox } = renderWrap();
-    expect(textBox).toHaveAttribute('readOnly');
     expect(textBox).toHaveAttribute('maxLength', '50');
-    await userEvent.click(textBox);
-    expect(textBox).not.toHaveAttribute('readOnly');
   });
 
   test('show recorder and text: test before typing', async () => {
@@ -55,8 +52,6 @@ describe('ChatItem', () => {
   test('update sending text when pressing sending text', async () => {
     const { textBox, sendTextBtn } = renderWrap();
     let typingText = 'WORD';
-    await userEvent.click(textBox);
-    expect(textBox).not.toHaveAttribute('readOnly');
     await userEvent.type(textBox, typingText);
 
     expect(screen.getByText(`test${typingText}`)).toBeInTheDocument();

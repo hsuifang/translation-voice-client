@@ -40,7 +40,6 @@ const ChatItem = ({
 }: IChatItemProps) => {
   const { availableVoiceLangs } = useChatStore();
 
-  const [isReadOnly, setIsReadOnly] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const [typingText, setTypingText] = useState('');
 
@@ -52,7 +51,6 @@ const ChatItem = ({
     if (typingText === '') {
       setTypingText(text);
     }
-    setIsReadOnly(false);
     setIsTyping(true);
   };
 
@@ -86,7 +84,6 @@ const ChatItem = ({
           <StyledTypingText
             _focusVisible={{ border: 'none' }}
             data-testid="chat-text"
-            readOnly={isReadOnly}
             value={isTyping && !isProcess ? typingText : text}
             maxLength={50}
             onClick={handleClickTextBox}
