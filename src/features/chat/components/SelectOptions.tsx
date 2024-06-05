@@ -10,12 +10,12 @@ interface ISelectProps {
   value: string;
   options: Options[];
   setValue: (value: string) => void;
-  disabled: boolean;
+  disabled?: boolean;
   size?: string;
   style?: SystemStyleObject;
 }
 
-const SelectOptions = ({ variant, value, setValue, disabled, options, size, style }: ISelectProps) => {
+const SelectOptions = ({ variant, value, setValue, disabled = false, options, size, style }: ISelectProps) => {
   return (
     <Select
       variant={variant}

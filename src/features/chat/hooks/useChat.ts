@@ -15,6 +15,7 @@ type RecordContentState = {
   url: string;
   autoPlay: boolean;
   selected: boolean;
+  model: string;
 }[];
 
 // 對話筐類型
@@ -22,6 +23,7 @@ type RecordContentState = {
 const contentInitItem = (lang: string, kind: Kind) => ({
   kind,
   lang,
+  model: 'auto',
   text: '',
   url: '',
   autoPlay: false,

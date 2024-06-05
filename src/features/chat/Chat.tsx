@@ -16,10 +16,8 @@ const Chat = () => {
     modelLang: storeModelLang,
     chatLang: storeChatLang,
     viewMode: storeViewMode,
-    availableModelLangs,
     changeViewMode,
     changeChatLang,
-    changeModelLang,
   } = useChatStore();
 
   const {
@@ -62,15 +60,7 @@ const Chat = () => {
         <Text fontSize="20px" as="abbr">
           TRANSLATION
         </Text>
-        <Flex w="200px" gap="5px">
-          <SelectOptions
-            style={{ width: '100px' }}
-            size="xs"
-            value={storeModelLang}
-            disabled={isProcessing}
-            setValue={(val) => changeModelLang(val)}
-            options={availableModelLangs.map((lang) => ({ key: lang, value: lang }))}
-          />
+        <Flex>
           <SelectOptions
             style={{ width: '100px' }}
             size="xs"
@@ -103,6 +93,8 @@ const Chat = () => {
             autoPlay={content.autoPlay}
             url={content.url}
             language={content.lang}
+            model={content.model}
+            setModel={(val) => handleSelectLangOrModel({ kind: content.kind, key: 'model', value: val })}
             setLanguage={(val) => {
               handleSelectLangOrModel({ kind: content.kind, key: 'lang', value: val });
               changeChatLang(content.kind, val);

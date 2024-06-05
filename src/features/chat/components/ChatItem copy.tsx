@@ -1,20 +1,14 @@
-import { Box, Grid, IconButton, Flex, Textarea, Text } from '@chakra-ui/react';
+import { Box, Grid, IconButton, Flex, Textarea } from '@chakra-ui/react';
 import styled from '@emotion/styled';
 import { useEffect, useState } from 'react';
 import VoiceAnimation from './VoiceAnimation';
-import AudioController from './AudioController';
-
-import { FaMicrophone } from 'react-icons/fa';
+import SelectOptions from './SelectOptions';
+import useChatStore from '../store/useChatStore';
 import { IoSend } from 'react-icons/io5';
-import { IoMdSettings } from 'react-icons/io';
-// TODO MODELLANGSWITCH
-import ModelLangSwitch from './ModelLangSwitch';
 
 interface IChatItemProps {
   isProcess: boolean;
   language: string;
-  model: string;
-  setModel: (model: string) => void;
   setLanguage: (lang: string) => void;
   handleUpdateText: (text: string) => void; // typing時會觸發
   text: string;
@@ -24,6 +18,7 @@ interface IChatItemProps {
 }
 
 const StyledTypingText = styled(Textarea)`
+  margin-top: 14px;
   overflow-y: scroll;
   scroll-behavior: smooth;
   font-family: monospace;
@@ -31,22 +26,20 @@ const StyledTypingText = styled(Textarea)`
   height: 100%;
   border: none;
   resize: none;
-  border-radius: 8px;
-  padding: 0;
 `;
 
 const ChatItem = ({
   isProcess,
   language,
   setLanguage,
-  model,
-  setModel,
   text,
   url,
   autoPlay = false,
   handleUpdateText,
   children,
 }: IChatItemProps) => {
+  const { availableVoiceLangs } = useChatStore();
+
   const [isTyping, setIsTyping] = useState(false);
   const [typingText, setTypingText] = useState('');
 
@@ -69,22 +62,24 @@ const ChatItem = ({
   }, [isProcess]);
 
   return (
-    <>
-      {/* <ModelLangSwitch kind="self" language={language} model={model} /> */}
-      <Grid
-        position="relative"
-        templateRows="1fr auto"
-        w="100%"
-        bg="white"
-        borderRadius="8px"
-        padding="16px 0 16px 16px"
-        paddingRight="0"
-      >
-        {/* text */}
+    <Box bg="gray.50" position="relative" borderRadius="8px" padding="10px">
+      <Flex justifyContent="end" position="absolute" top="5px" right="5px" zIndex="1">
+        <Box width="clamp(50px, 100%, 100px)">
+          <SelectOptions
+            variant="fill"
+            size="xs"
+            value={language}
+            disabled={isProcess}
+            setValue={setLanguage}
+            style={{ bgColor: 'gray.100', bg: 'green.400', color: 'white' }}
+            options={availableVoiceLangs}
+          />
+        </Box>
+      </Flex>
+      {/* </Box> */}
+      <Grid position="relative" templateRows="1fr auto" w="100%" borderRadius="8px" height="100%">
         {isProcess ? (
-          <Box>
-            <VoiceAnimation />
-          </Box>
+          <VoiceAnimation />
         ) : (
           <StyledTypingText
             _focusVisible={{ border: 'none' }}
@@ -98,33 +93,17 @@ const ChatItem = ({
             }}
           />
         )}
-        <Grid templateColumns="1fr auto" paddingRight="16px" gap="8px" alignItems="end">
-          <Flex alignContent="center" paddingRight="8px" alignItems={'center'}>
-            <Flex borderRight="2px solid #ddd" paddingRight="8px" alignItems={'center'}>
-              <IconButton
-                size="xs"
-                data-testid="sendText-entry"
-                aria-label="toggle recording button"
-                icon={<IoMdSettings size={16} />}
-              />
-              <Text fontSize="10px" fontWeight="bold" fontFamily="mono" marginLeft="8px">
-                VOICE: {model} LANG: {language}
-              </Text>
-            </Flex>
-            <Box padding="0 8px">
-              <IconButton
-                icon={isTyping ? <FaMicrophone /> : <IoSend size={8} />}
-                size="xs"
-                data-testid="sendText-entry"
-                aria-label="toggle recording button"
-                onClick={() => setIsTyping(!isTyping)}
-              />
-            </Box>
-            <Box borderLeft="2px solid #ddd" padding="0 8px">
-              <AudioController url={url} autoPlay={autoPlay} />
-            </Box>
-          </Flex>
-          {isTyping ? (
+
+        <Flex justifyContent="space-between" alignItems="end">
+          <Box w={children ? '70%' : '100%'} maxW="240px">
+            {!isProcess && url && (
+              <audio controls key={url} autoPlay={autoPlay} aria-label="Voice Message">
+                <source src={url} type="audio/wav" />
+                Your browser does not support the audio element.
+              </audio>
+            )}
+          </Box>
+          {typingText.length ? (
             <IconButton
               data-testid="sendText-entry"
               aria-label="toggle recording button"
@@ -145,9 +124,9 @@ const ChatItem = ({
           ) : (
             children
           )}
-        </Grid>
+        </Flex>
       </Grid>
-    </>
+    </Box>
   );
 };
 
