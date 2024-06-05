@@ -5,7 +5,7 @@ import langMapping from '../utils/langMapping.json';
 const VoiceLangMapping: Record<string, string> = langMapping;
 
 // Define the shape of the chatLang object
-interface ChatLang {
+interface ChatSettings {
   self: string;
   opposite: string;
 }
@@ -13,12 +13,12 @@ interface ChatLang {
 // Define the shape of the store's state
 type Language = { key: string; value: string };
 interface IChatStoreState {
-  modelLang: string;
-  chatLang: ChatLang;
+  modelLang: ChatSettings;
+  chatLang: ChatSettings;
   availableModelLangs: string[];
   availableVoiceLangs: Language[];
   viewMode: 'normal' | 'pm';
-  changeModelLang: (model: string) => void;
+  changeModelLang: (role: 'self' | 'opposite', model: string) => void;
   changeViewMode: (mode: 'normal' | 'pm') => void;
   changeChatLang: (role: 'self' | 'opposite', lang: string) => void;
   setAvailableModelLangs: (langs: string[]) => void;
@@ -34,7 +34,10 @@ type ChatStorePersist = (
 const useChatStore = create<IChatStoreState>(
   (persist as ChatStorePersist)(
     (set, get) => ({
-      modelLang: 'evonne', // 模組
+      modelLang: {
+        self: 'auto',
+        opposite: 'auto',
+      },
       chatLang: {
         self: 'ja',
         opposite: 'en',
@@ -42,7 +45,8 @@ const useChatStore = create<IChatStoreState>(
       availableModelLangs: [], // 模組清單
       availableVoiceLangs: [],
       viewMode: 'normal', // 檢視模式
-      changeModelLang: (model: string) => set({ modelLang: model }),
+      changeModelLang: (role: 'self' | 'opposite', model: string) =>
+        set({ modelLang: { ...get().modelLang, [role]: model } }),
       changeViewMode: (mode: 'normal' | 'pm') => set({ viewMode: mode }),
       changeChatLang: (role: 'self' | 'opposite', lang: string) =>
         set({ chatLang: { ...get().chatLang, [role]: lang } }),

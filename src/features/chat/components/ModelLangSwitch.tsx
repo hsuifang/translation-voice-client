@@ -1,36 +1,54 @@
-import { Box, Text } from '@chakra-ui/react';
+import { Box, Modal, Text, ModalOverlay, ModalContent, ModalCloseButton } from '@chakra-ui/react';
+import { useState } from 'react';
 import SelectOptions from './SelectOptions';
 import useChatStore from '../store/useChatStore';
 
 const KINDS = ['opposite', 'self'] as const;
 type Kind = (typeof KINDS)[number];
 
-const ModelLangSwitch = ({ kind, language, model }: { kind: Kind; language: string; model: string }) => {
+const ModelLangSwitch = ({
+  isOpen,
+  onClose,
+  language,
+  model,
+  changeModelLang,
+}: {
+  language: string;
+  model: string;
+  isOpen: boolean;
+  onClose: () => void;
+  changeModelLang: ({ key, value }: { key: 'lang' | 'model'; value: string }) => void;
+}) => {
   const { availableVoiceLangs, availableModelLangs } = useChatStore();
 
-  const handleSelectOptions = ({ key, value }: { key: 'lang' | 'model'; value: string }) => {
-    console.log(key, value, kind);
-  };
-
   return (
-    <Box>
-      <Text>選擇模型</Text>
-      <SelectOptions
-        style={{ width: '100px' }}
-        size="xs"
-        value={model}
-        setValue={(val) => handleSelectOptions({ key: 'model', value: val })}
-        options={availableModelLangs.map((lang) => ({ key: lang, value: lang }))}
-      />
-      <Text>選擇語言</Text>
-      <SelectOptions
-        variant="fill"
-        size="xs"
-        value={language}
-        setValue={(val) => handleSelectOptions({ key: 'lang', value: val })}
-        options={availableVoiceLangs}
-      />
-    </Box>
+    <Modal isOpen={isOpen} onClose={onClose} isCentered>
+      <ModalOverlay />
+
+      <ModalContent margin="50px" display="flex" alignContent={'center'} justifyContent={'center'}>
+        <ModalCloseButton />
+        <Box p="4">
+          <Box mb="4">
+            <Text>選擇模型</Text>
+            <SelectOptions
+              variant="fill"
+              size="xs"
+              value={model}
+              setValue={(val) => changeModelLang({ key: 'model', value: val })}
+              options={availableModelLangs.map((lang) => ({ key: lang, value: lang }))}
+            />
+          </Box>
+          <Text>選擇語言</Text>
+          <SelectOptions
+            variant="fill"
+            size="xs"
+            value={language}
+            setValue={(val) => changeModelLang({ key: 'lang', value: val })}
+            options={availableVoiceLangs}
+          />
+        </Box>
+      </ModalContent>
+    </Modal>
   );
 };
 

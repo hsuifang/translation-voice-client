@@ -1,4 +1,4 @@
-import { Box, Grid, IconButton, Flex, Textarea, Text } from '@chakra-ui/react';
+import { Box, Grid, IconButton, Flex, Textarea, Text, Tag } from '@chakra-ui/react';
 import styled from '@emotion/styled';
 import { useEffect, useState } from 'react';
 import VoiceAnimation from './VoiceAnimation';
@@ -7,16 +7,13 @@ import AudioController from './AudioController';
 import { FaMicrophone } from 'react-icons/fa';
 import { IoSend } from 'react-icons/io5';
 import { IoMdSettings } from 'react-icons/io';
-// TODO MODELLANGSWITCH
-import ModelLangSwitch from './ModelLangSwitch';
 
 interface IChatItemProps {
   isProcess: boolean;
   language: string;
   model: string;
-  setModel: (model: string) => void;
-  setLanguage: (lang: string) => void;
   handleUpdateText: (text: string) => void; // typing時會觸發
+  triggerSettings: () => void;
   text: string;
   url: string;
   autoPlay: boolean;
@@ -35,17 +32,54 @@ const StyledTypingText = styled(Textarea)`
   padding: 0;
 `;
 
+// @iggnor
+const StyledShowSelectedText = styled(Flex)`
+  align-items: center;
+  border-right: 2px dashed #ddd;
+  padding-right: 8px;
+  margin-right: 8px;
+  p,
+  label {
+    flex: 1;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: monospace;
+    margin-left: 5px;
+  }
+  span {
+    font-family: monospace;
+  }
+  @media screen and (max-width: 400px) {
+    label {
+      display: none;
+    }
+  }
+`;
+
+const StyledGridWrapper = styled(Grid)`
+  position: relative;
+  grid-template-rows: 1fr auto;
+  width: 100%;
+  background-color: white;
+  border-radius: 8px;
+  padding: 16px 0 16px 16px;
+  padding-right: 0;
+
+  @media screen and (max-width: 400px) {
+    padding-bottom: 8px;
+  }
+`;
+
 const ChatItem = ({
   isProcess,
   language,
-  setLanguage,
   model,
-  setModel,
   text,
   url,
   autoPlay = false,
   handleUpdateText,
   children,
+  triggerSettings,
 }: IChatItemProps) => {
   const [isTyping, setIsTyping] = useState(false);
   const [typingText, setTypingText] = useState('');
@@ -70,16 +104,7 @@ const ChatItem = ({
 
   return (
     <>
-      {/* <ModelLangSwitch kind="self" language={language} model={model} /> */}
-      <Grid
-        position="relative"
-        templateRows="1fr auto"
-        w="100%"
-        bg="white"
-        borderRadius="8px"
-        padding="16px 0 16px 16px"
-        paddingRight="0"
-      >
+      <StyledGridWrapper>
         {/* text */}
         {isProcess ? (
           <Box>
@@ -99,30 +124,47 @@ const ChatItem = ({
           />
         )}
         <Grid templateColumns="1fr auto" paddingRight="16px" gap="8px" alignItems="end">
-          <Flex alignContent="center" paddingRight="8px" alignItems={'center'}>
-            <Flex borderRight="2px solid #ddd" paddingRight="8px" alignItems={'center'}>
-              <IconButton
-                size="xs"
-                data-testid="sendText-entry"
-                aria-label="toggle recording button"
-                icon={<IoMdSettings size={16} />}
-              />
-              <Text fontSize="10px" fontWeight="bold" fontFamily="mono" marginLeft="8px">
-                VOICE: {model} LANG: {language}
+          <Flex padding={{ base: '0', md: '0 8px' }} alignItems={'center'} width="100%" color={'#999'}>
+            <IconButton
+              padding={'0'}
+              size="sm"
+              variant="ghost"
+              data-testid="sendText-entry"
+              aria-label="toggle recording button"
+              color="inherit"
+              icon={<IoMdSettings size="20" color="inherit" />}
+              onClick={triggerSettings}
+            />
+            <StyledShowSelectedText>
+              <Text as="label" marginRight="4px">
+                VOICE:
               </Text>
-            </Flex>
-            <Box padding="0 8px">
+              <Tag variant="solid" size="sm" marginRight="4px">
+                {model}
+              </Tag>
+              <Text as="label" marginRight="4px">
+                LANG:
+              </Text>
+              <Tag variant="solid" size="sm">
+                {language}
+              </Tag>
+            </StyledShowSelectedText>
+            <Flex justifyContent={{ base: 'flex-start', md: 'center' }} flexGrow="1">
+              <Flex padding={{ base: '0 4px', md: '0 8px' }} justifyContent="center">
+                <AudioController url={url} autoPlay={autoPlay} />
+              </Flex>
               <IconButton
-                icon={isTyping ? <FaMicrophone /> : <IoSend size={8} />}
-                size="xs"
+                icon={isTyping ? <FaMicrophone size={20} /> : <IoSend size={20} />}
                 data-testid="sendText-entry"
                 aria-label="toggle recording button"
                 onClick={() => setIsTyping(!isTyping)}
+                variant="ghost"
+                colorScheme="gray"
+                _hover={{ background: 'white' }}
+                _active={{ background: 'white' }}
+                borderRadius={'50%'}
               />
-            </Box>
-            <Box borderLeft="2px solid #ddd" padding="0 8px">
-              <AudioController url={url} autoPlay={autoPlay} />
-            </Box>
+            </Flex>
           </Flex>
           {isTyping ? (
             <IconButton
@@ -146,7 +188,7 @@ const ChatItem = ({
             children
           )}
         </Grid>
-      </Grid>
+      </StyledGridWrapper>
     </>
   );
 };
