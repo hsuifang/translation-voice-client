@@ -107,7 +107,7 @@ const ChatItem = ({
 
   return (
     <>
-      <StyledGridWrapper>
+      <StyledGridWrapper border={isTyping && !isProcess ? '2px dashed #666' : '1px solid transparent'}>
         {/* text */}
         {isProcess ? (
           <Box>

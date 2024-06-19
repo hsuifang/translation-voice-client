@@ -20,21 +20,44 @@ const StyledIconButton = styled(IconButton)`
 const AudioController = ({ url, autoPlay = true }: { url: string | null; autoPlay: boolean }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const handlePlay = () => {
+  const handlePlay = async () => {
     if (audioRef.current) {
       if (audioRef.current.paused) {
-        audioRef.current.play();
+        await audioRef.current.play();
+        audioRef.current.muted = false;
       } else {
         audioRef.current.pause();
+        audioRef.current.muted = true;
+        audioRef.current.currentTime = 0;
       }
     }
   };
-  useEffect(() => {
-    if (audioRef.current && autoPlay && url) {
+
+  const firstAutoPlay = () => {
+    if (autoPlay) {
       handlePlay();
-      // userAgnent
     }
-  }, [url, autoPlay, audioRef.current]);
+  };
+
+  useEffect(() => {
+    if (audioRef.current && url) {
+      audioRef.current.src = url;
+      audioRef.current.muted = true;
+      audioRef.current.currentTime = 0;
+      if (autoPlay) {
+        handlePlay();
+      }
+    }
+  }, [url, audioRef.current]);
+
+  useEffect(() => {
+    document.addEventListener('touchstart', firstAutoPlay, { once: true });
+    document.addEventListener('click', firstAutoPlay, { once: true });
+    return () => {
+      document.removeEventListener('touchstart', firstAutoPlay);
+      document.removeEventListener('click', firstAutoPlay);
+    };
+  }, []);
 
   return (
     <Box>
@@ -47,7 +70,7 @@ const AudioController = ({ url, autoPlay = true }: { url: string | null; autoPla
         icon={<FaPlayCircle size={24} />}
         onClick={handlePlay}
       />
-      <audio ref={audioRef} autoPlay={autoPlay} controls hidden aria-label="Voice Message">
+      <audio ref={audioRef} muted={true} playsInline={true} autoPlay={autoPlay} aria-label="Voice Message">
         {url && <source src={url} type="audio/wav" />}
         Your browser does not support the audio element.
       </audio>

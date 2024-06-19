@@ -1,5 +1,7 @@
 import { Grid, Flex, Text, useDisclosure } from '@chakra-ui/react';
-import { useEffect, useState } from 'react'; // TODO MODELLANGSWITCH
+import { useEffect, useRef, useState } from 'react'; // TODO MODELLANGSWITCH
+import useMediaDevices from './hooks/useMediaDevices';
+import { memo } from 'react';
 // component
 import { useChat } from './hooks/useChat';
 import { useToast } from '@chakra-ui/react';
@@ -10,9 +12,14 @@ import Recorder from './components/Recorder';
 import SelectOptions from './components/SelectOptions';
 import ChatItem from './components/ChatItem';
 
+const RecorderMemo = memo(Recorder);
+
 const Chat = () => {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const isGetUserMediaSuccess = useRef(false);
+  const { getUserMediaStream, stream } = useMediaDevices();
   // store
   const {
     modelLang: storeModelLang,
@@ -66,6 +73,17 @@ const Chat = () => {
     }
   }, [errorMsg]);
 
+  const handleGetUserMediaSuccess = async () => {
+    if (!isGetUserMediaSuccess.current) {
+      isGetUserMediaSuccess.current = true;
+      await getUserMediaStream({ audio: { deviceId: 'default', channelCount: 1, sampleRate: 16000 } });
+    }
+  };
+
+  useEffect(() => {
+    handleGetUserMediaSuccess();
+  }, []);
+
   return (
     <>
       <ModelLangSwitch
@@ -87,7 +105,7 @@ const Chat = () => {
         bg="gray.500"
       >
         <Flex as="header" justifyContent="space-between">
-          <Text fontSize="20px" as="abbr" fontFamily="mono">
+          <Text fontSize="20px" as="abbr" fontFamily="mono" fontWeight={600} letterSpacing="1px" color={'gray.300'}>
             TRANSLATION
           </Text>
           <Flex>
@@ -130,12 +148,13 @@ const Chat = () => {
               }}
               handleUpdateText={(str) => handleUpdateTypingText(str, content.kind)}
             >
-              <Recorder
+              <RecorderMemo
                 disabledBtn={(isProcessing && !content.selected) || isUploading}
                 updateBlob={(blob) => handleUpdateBlob(blob, content.kind)}
                 setIsRecording={(isRecording) => handleSetIsProcessing(isRecording, content.kind)}
                 isRecording={isProcessing}
                 recordLimitTime={10}
+                stream={stream}
               />
             </ChatItem>
           </Grid>

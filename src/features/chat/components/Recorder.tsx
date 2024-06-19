@@ -1,5 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
-import useMediaDevices from '../hooks/useMediaDevices';
+import { useRef, useEffect, useState } from 'react';
 import RecordRTC from 'recordrtc';
 import { IconButton } from '@chakra-ui/react';
 import { FaMicrophone } from 'react-icons/fa';
@@ -13,44 +12,38 @@ interface IRecorderProps {
   isRecording: boolean;
   recordLimitTime: number;
   setIsRecording: (isRecording: boolean) => void;
+  stream: MediaStream | null;
 }
 
-const Recorder = ({ recordLimitTime = 10, isRecording, updateBlob, setIsRecording, disabledBtn }: IRecorderProps) => {
+const Recorder = ({
+  recordLimitTime = 10,
+  isRecording,
+  updateBlob,
+  setIsRecording,
+  disabledBtn,
+  stream,
+}: IRecorderProps) => {
   // devices
-  const { getUserMediaStream, stream } = useMediaDevices();
   const mediaRecorderRef = useRef<RecordRTC | null>(null);
-  const audioChunksRef = useRef<BlobPart[]>([]);
 
   // countup
   const [recordSeconds, setRecordSeconds] = useState(0);
 
-  useEffect(() => {
-    getUserMediaStream({ audio: { deviceId: 'default', channelCount: 1, sampleRate: 16000 } });
-  }, [getUserMediaStream]);
-
-  const handleStartRecording = useCallback(() => {
+  const handleStartRecording = () => {
     // Prevent starting a new recording if already recording
-    if (isRecording) return;
-
+    if (isRecording && stream) return;
     setIsRecording(true);
-    audioChunksRef.current = [];
 
-    try {
-      if (stream) {
-        mediaRecorderRef.current = new RecordRTC(stream, {
-          type: 'audio',
-          desiredSampRate: 16000,
-          numberOfAudioChannels: 1,
-          recorderType: RecordRTC.StereoAudioRecorder,
-        });
-        mediaRecorderRef.current.startRecording();
+    if (mediaRecorderRef.current) {
+      if (mediaRecorderRef.current.state === 'inactive') {
+        console.log('mediaRecorderRef.current.state', mediaRecorderRef.current.state);
+        // mediaRecorderRef.current.onStateChanged('recording');
       }
-    } catch (error) {
-      console.error('Error accessing the microphone: ', error);
+      mediaRecorderRef.current.startRecording();
     }
-  }, [isRecording, stream]);
+  };
 
-  const handleStopRecording = useCallback(() => {
+  const handleStopRecording = () => {
     if (!isRecording) return;
     setIsRecording(false);
     if (mediaRecorderRef.current) {
@@ -58,10 +51,11 @@ const Recorder = ({ recordLimitTime = 10, isRecording, updateBlob, setIsRecordin
         if (mediaRecorderRef.current) {
           const audioBlob = mediaRecorderRef.current.getBlob();
           updateBlob(audioBlob);
+          mediaRecorderRef.current.reset();
         }
       });
     }
-  }, [isRecording, updateBlob, setIsRecording, mediaRecorderRef]);
+  };
 
   const toggleRecording = () => {
     if (isRecording) {
@@ -100,6 +94,17 @@ const Recorder = ({ recordLimitTime = 10, isRecording, updateBlob, setIsRecordin
       toggleRecording();
     }
   }, [isRecording, recordSeconds, toggleRecording]);
+
+  useEffect(() => {
+    if (stream) {
+      mediaRecorderRef.current = new RecordRTC(stream, {
+        type: 'audio',
+        desiredSampRate: 16000,
+        numberOfAudioChannels: 1,
+        recorderType: RecordRTC.StereoAudioRecorder,
+      });
+    }
+  }, [stream]);
 
   return (
     <Flex justifyContent="center" direction="column" data-testid="recorder-entry">

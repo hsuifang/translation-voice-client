@@ -11,7 +11,7 @@ interface UseMediaDevicesHook {
   devices: MediaDevice[];
   stream: MediaStream | null;
   error: Error | null;
-  getUserMediaStream: (contraints: MediaStreamConstraints) => Promise<void>;
+  getUserMediaStream: (contraints: MediaStreamConstraints) => Promise<MediaStream | undefined>;
 }
 
 const useMediaDevices = (): UseMediaDevicesHook => {
@@ -28,19 +28,25 @@ const useMediaDevices = (): UseMediaDevicesHook => {
     } catch (err) {
       setError(err as Error);
     }
-  }, []);
+  }, [devices]);
 
-  const getUserMediaStream = useCallback(async (constraints: MediaStreamConstraints) => {
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-      setStream(mediaStream);
-      // After permission is granted and stream is received, enumerate devices
-      await getDevices();
-    } catch (e) {
-      setError(e as Error);
-      setStream(null);
-    }
-  }, []);
+  const getUserMediaStream = useCallback(
+    async (constraints: MediaStreamConstraints) => {
+      console.log('35');
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        console.log('mediaStream', mediaStream);
+        setStream(mediaStream);
+        // After permission is granted and stream is received, enumerate devices
+        await getDevices();
+        return mediaStream;
+      } catch (e) {
+        setError(e as Error);
+        setStream(null);
+      }
+    },
+    [stream],
+  );
 
   useEffect(() => {
     const handleDeviceChange = () => {
