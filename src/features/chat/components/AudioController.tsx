@@ -17,7 +17,7 @@ const StyledIconButton = styled(IconButton)`
   }
 `;
 
-const AudioController = ({ url, autoPlay = true }: { url: string; autoPlay: boolean }) => {
+const AudioController = ({ url, autoPlay = true }: { url: string | null; autoPlay: boolean }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const handlePlay = () => {
@@ -30,7 +30,7 @@ const AudioController = ({ url, autoPlay = true }: { url: string; autoPlay: bool
     }
   };
   useEffect(() => {
-    if (audioRef.current && autoPlay) {
+    if (audioRef.current && autoPlay && url) {
       handlePlay();
       // userAgnent
     }
@@ -48,7 +48,7 @@ const AudioController = ({ url, autoPlay = true }: { url: string; autoPlay: bool
         onClick={handlePlay}
       />
       <audio ref={audioRef} autoPlay={autoPlay} controls hidden aria-label="Voice Message">
-        <source src={url} type="audio/wav" />
+        {url && <source src={url} type="audio/wav" />}
         Your browser does not support the audio element.
       </audio>
     </Box>

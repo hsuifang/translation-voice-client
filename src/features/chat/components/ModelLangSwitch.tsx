@@ -1,10 +1,6 @@
 import { Box, Modal, Text, ModalOverlay, ModalContent, ModalCloseButton } from '@chakra-ui/react';
-import { useState } from 'react';
 import SelectOptions from './SelectOptions';
 import useChatStore from '../store/useChatStore';
-
-const KINDS = ['opposite', 'self'] as const;
-type Kind = (typeof KINDS)[number];
 
 const ModelLangSwitch = ({
   isOpen,
@@ -32,7 +28,7 @@ const ModelLangSwitch = ({
             <Text>選擇模型</Text>
             <SelectOptions
               variant="fill"
-              size="xs"
+              size="md"
               value={model}
               setValue={(val) => changeModelLang({ key: 'model', value: val })}
               options={availableModelLangs.map((lang) => ({ key: lang, value: lang }))}
@@ -41,7 +37,7 @@ const ModelLangSwitch = ({
           <Text>選擇語言</Text>
           <SelectOptions
             variant="fill"
-            size="xs"
+            size="md"
             value={language}
             setValue={(val) => changeModelLang({ key: 'lang', value: val })}
             options={availableVoiceLangs}

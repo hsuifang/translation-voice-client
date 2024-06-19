@@ -12,7 +12,7 @@ type RecordContentState = {
   lang: string;
   kind: Kind;
   text: string;
-  url: string;
+  url: string | null;
   autoPlay: boolean;
   selected: boolean;
   model: string;
@@ -54,8 +54,8 @@ export const useChat = ({
     setRecordContent((prev) =>
       prev.map((content) =>
         content.kind === kind
-          ? { ...content, text: isProcessing ? 'recording...' : '', selected: isProcessing, url: '' }
-          : { ...content, text: isProcessing ? 'recording...' : '', selected: false, url: '' },
+          ? { ...content, text: isProcessing ? 'recording...' : '', selected: isProcessing, url: null }
+          : { ...content, text: isProcessing ? 'recording...' : '', selected: false, url: null },
       ),
     );
   };
@@ -124,10 +124,9 @@ export const useChat = ({
         target_lang,
         model: source_model,
       });
-
       // Convert base64 string to Blob
-      const audioBlob = base64ToBlob(file, 'audio/wav');
-      const audioURL = URL.createObjectURL(audioBlob);
+      const audioBlob = file && base64ToBlob(file, 'audio/wav');
+      const audioURL = file && URL.createObjectURL(audioBlob);
 
       setRecordContent((prev) =>
         prev.map((content) => {

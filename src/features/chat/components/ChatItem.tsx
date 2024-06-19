@@ -6,6 +6,7 @@ import AudioController from './AudioController';
 
 import { FaMicrophone } from 'react-icons/fa';
 import { IoSend } from 'react-icons/io5';
+import { RiCharacterRecognitionFill } from 'react-icons/ri';
 import { IoMdSettings } from 'react-icons/io';
 
 interface IChatItemProps {
@@ -15,7 +16,7 @@ interface IChatItemProps {
   handleUpdateText: (text: string) => void; // typing時會觸發
   triggerSettings: () => void;
   text: string;
-  url: string;
+  url: string | null;
   autoPlay: boolean;
   children?: React.ReactNode;
 }
@@ -32,7 +33,7 @@ const StyledTypingText = styled(Textarea)`
   padding: 0;
 `;
 
-// @iggnor
+// @ignore
 const StyledShowSelectedText = styled(Flex)`
   align-items: center;
   border-right: 2px dashed #ddd;
@@ -88,11 +89,13 @@ const ChatItem = ({
     setTypingText(text);
   };
 
-  const handleClickTextBox = () => {
-    if (typingText === '') {
+  const toggleClickTextBox = (isTyping: boolean) => {
+    if (isTyping && typingText === '') {
       setTypingText(text);
+    } else {
+      setTypingText('');
     }
-    setIsTyping(true);
+    setIsTyping(isTyping);
   };
 
   useEffect(() => {
@@ -116,7 +119,7 @@ const ChatItem = ({
             data-testid="chat-text"
             value={isTyping && !isProcess ? typingText : text}
             maxLength={50}
-            onClick={handleClickTextBox}
+            readOnly={!isTyping || isProcess}
             placeholder="請錄製/輸入語音訊息..."
             onChange={(e) => {
               handleIsTyping(e.target.value);
@@ -154,10 +157,10 @@ const ChatItem = ({
                 <AudioController url={url} autoPlay={autoPlay} />
               </Flex>
               <IconButton
-                icon={isTyping ? <FaMicrophone size={20} /> : <IoSend size={20} />}
+                icon={isTyping ? <FaMicrophone size={20} /> : <RiCharacterRecognitionFill size={24} />}
                 data-testid="sendText-entry"
                 aria-label="toggle recording button"
-                onClick={() => setIsTyping(!isTyping)}
+                onClick={() => toggleClickTextBox(!isTyping)}
                 variant="ghost"
                 colorScheme="gray"
                 _hover={{ background: 'white' }}
