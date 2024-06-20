@@ -12,26 +12,34 @@ type RecordContentState = {
   lang: string;
   kind: Kind;
   text: string;
-  url: string;
+  url: string | null;
   autoPlay: boolean;
   selected: boolean;
+  model: string;
 }[];
 
 // 對話筐類型
 
-const contentInitItem = (lang: string, kind: Kind) => ({
+const contentInitItem = ({ kind, lang, model }: { kind: Kind; lang: string; model: string }) => ({
   kind,
   lang,
+  model,
   text: '',
   url: '',
   autoPlay: false,
   selected: false,
 });
 
-export const useChat = ({ chatLang, modelLang }: { chatLang: Record<Kind, string>; modelLang: string }) => {
+export const useChat = ({
+  chatLang,
+  modelLang,
+}: {
+  chatLang: Record<Kind, string>;
+  modelLang: Record<Kind, string>;
+}) => {
   // style
   const [errorMsg, setErrorMsg] = useState('');
-  const contentInit = KINDS.map((kind) => contentInitItem(chatLang[kind], kind));
+  const contentInit = KINDS.map((kind) => contentInitItem({ kind, lang: chatLang[kind], model: modelLang[kind] }));
 
   const [recordContent, setRecordContent] = useState<RecordContentState>(contentInit);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -46,8 +54,8 @@ export const useChat = ({ chatLang, modelLang }: { chatLang: Record<Kind, string
     setRecordContent((prev) =>
       prev.map((content) =>
         content.kind === kind
-          ? { ...content, text: isProcessing ? 'recording...' : '', selected: isProcessing, url: '' }
-          : { ...content, text: isProcessing ? 'recording...' : '', selected: false, url: '' },
+          ? { ...content, text: isProcessing ? 'recording...' : '', selected: isProcessing, url: null }
+          : { ...content, text: isProcessing ? 'recording...' : '', selected: false, url: null },
       ),
     );
   };
@@ -81,7 +89,9 @@ export const useChat = ({ chatLang, modelLang }: { chatLang: Record<Kind, string
 
   const getSourceLang = (target?: string) => {
     let source_lang: string | null = null,
-      target_lang: string | null = null;
+      target_lang: string | null = null,
+      source_model: string | null = null;
+
     let source_area: Kind | null = null,
       target_area: Kind | null = null;
 
@@ -89,13 +99,14 @@ export const useChat = ({ chatLang, modelLang }: { chatLang: Record<Kind, string
       if (content.kind === target || content.selected) {
         source_lang = source_lang ?? content.lang;
         source_area = source_area ?? content.kind;
+        source_model = source_model ?? content.model;
       } else {
         target_lang = target_lang ?? content.lang;
         target_area = target_area ?? content.kind;
       }
     });
 
-    return { source_lang, target_lang, source_area, target_area };
+    return { source_lang, target_lang, source_area, target_area, source_model };
   };
 
   // TODO: 整合 handleUpload 和 handleUpdateTypingText
@@ -104,19 +115,18 @@ export const useChat = ({ chatLang, modelLang }: { chatLang: Record<Kind, string
     setIsUploading(true);
     const audioFile = new File([blob], `record-${dayjs().format('YYYYMMDDHHmmss')}.wav`, { type: 'audio/wav' });
     try {
-      const { source_lang, target_lang, source_area, target_area } = getSourceLang();
-      if (!source_lang || !target_lang) return;
+      const { source_lang, target_lang, source_area, target_area, source_model } = getSourceLang();
+      if (!source_lang || !target_lang || !source_model) return;
 
       const { source_text, target_text, file } = await speechTranslateReq({
         file: audioFile,
         source_lang,
         target_lang,
-        model: modelLang,
+        model: source_model,
       });
-
       // Convert base64 string to Blob
-      const audioBlob = base64ToBlob(file, 'audio/wav');
-      const audioURL = URL.createObjectURL(audioBlob);
+      const audioBlob = file && base64ToBlob(file, 'audio/wav');
+      const audioURL = file && URL.createObjectURL(audioBlob);
 
       setRecordContent((prev) =>
         prev.map((content) => {
@@ -142,14 +152,14 @@ export const useChat = ({ chatLang, modelLang }: { chatLang: Record<Kind, string
     setIsUploading(true);
 
     try {
-      const { source_lang, target_lang, source_area, target_area } = getSourceLang(kind);
-      if (!source_lang || !target_lang) return;
+      const { source_lang, target_lang, source_area, target_area, source_model } = getSourceLang(kind);
+      if (!source_lang || !target_lang || !source_model) return;
 
       const { source_text, target_text, file } = await textTranslateReq({
         source_text: text,
         source_lang,
         target_lang,
-        model: modelLang,
+        model: source_model,
       });
 
       // Convert base64 string to Blob

@@ -8,13 +8,14 @@ describe('ChatItem', () => {
   let handleUpdateText = vi.fn();
   const wrapper = (isProcess = false) => (
     <ChatItem
-      text="test"
-      handleUpdateText={handleUpdateText}
-      language="zh"
       isProcess={isProcess}
-      autoPlay={false}
+      language="zh"
+      model="auto"
+      handleUpdateText={handleUpdateText}
+      triggerSettings={() => null}
+      text="test"
       url={''}
-      setLanguage={() => {}}
+      autoPlay={false}
     >
       <div data-testid="recorder-entry" />
     </ChatItem>
@@ -24,11 +25,16 @@ describe('ChatItem', () => {
     const textBox = screen.getByTestId('chat-text');
     const recorder = screen.queryByTestId('recorder-entry');
     const sendTextBtn = screen.queryByTestId('sendText-entry');
+    const switchSettingsBtn = screen.queryByTestId('switchSettings-entry');
+    const toggleTypingBtn = screen.queryByTestId('toggleTyping-entry');
 
     return {
       textBox,
       recorder,
       sendTextBtn,
+      switchSettingsBtn,
+      toggleTypingBtn,
+
       rerender,
     };
   }
@@ -50,10 +56,13 @@ describe('ChatItem', () => {
   });
 
   test('update sending text when pressing sending text', async () => {
-    const { textBox, sendTextBtn } = renderWrap();
+    const { textBox, sendTextBtn, toggleTypingBtn } = renderWrap();
     let typingText = 'WORD';
-    await userEvent.type(textBox, typingText);
 
+    if (toggleTypingBtn) {
+      await userEvent.click(toggleTypingBtn);
+    }
+    await userEvent.type(textBox, typingText);
     expect(screen.getByText(`test${typingText}`)).toBeInTheDocument();
 
     if (sendTextBtn) {
@@ -64,9 +73,11 @@ describe('ChatItem', () => {
   });
 
   test('isProcess is true, clear typing text', async () => {
-    const { textBox, rerender } = renderWrap();
+    const { textBox, rerender, toggleTypingBtn } = renderWrap();
     let typingText = 'WORD';
-    await userEvent.click(textBox);
+    if (toggleTypingBtn) {
+      await userEvent.click(toggleTypingBtn);
+    }
     await userEvent.type(textBox, typingText);
 
     expect(screen.getByText(`test${typingText}`)).toBeInTheDocument();

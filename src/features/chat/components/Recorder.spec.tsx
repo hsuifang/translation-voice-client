@@ -54,6 +54,7 @@ describe('Recorder', () => {
         updateBlob={vi.fn()}
         setIsRecording={vi.fn()}
         disabledBtn={false}
+        stream={'98765' as any}
       />,
     );
     const button = screen.getByRole('button');
@@ -68,6 +69,7 @@ describe('Recorder', () => {
         updateBlob={vi.fn()}
         setIsRecording={vi.fn()}
         disabledBtn={true}
+        stream={'98765' as any}
       />,
     );
     const button = screen.getByRole('button');
@@ -86,6 +88,7 @@ describe('Recorder', () => {
         updateBlob={updateBlobFn}
         setIsRecording={setIsRecordingFn}
         disabledBtn={false}
+        stream={'98765' as any}
       />,
     );
 
@@ -100,6 +103,7 @@ describe('Recorder', () => {
         updateBlob={updateBlobFn}
         setIsRecording={setIsRecordingFn}
         disabledBtn={false}
+        stream={'98765' as any}
       />,
     );
     await userEvent.click(button);
@@ -117,6 +121,7 @@ describe('Recorder', () => {
         updateBlob={updateBlobFn}
         setIsRecording={setIsRecordingFn}
         disabledBtn={false}
+        stream={'98765' as any}
       />,
     );
     const button = screen.getByRole('button');
